@@ -1,4 +1,13 @@
-static unsigned int DS18S20_Pin = 13; //DS18S20 Signal pin on digital 2  
+#ifndef WATER_TEMP_SENSOR_H
+#define WATER_TEMP_SENSOR_H
+#include <Arduino.h>
 
-void setupTempSensor();
-float getTemp();
+class WaterTempSensor {
+public:
+    WaterTempSensor(int pin);
+    float readTemperature();
+private:
+    int pin;
+};
+
+#endif

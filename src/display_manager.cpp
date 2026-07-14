@@ -38,7 +38,7 @@ void setupDisplay(){
 void manageDisplay(){
   tft.fillScreen(BLACK); //clear screen
 
-  for (int i=0; i<5; i++){
+  for (int i=0; i<max_display_items; i++){
     if(display_arr[i].tag != NULL){ //if exists, display this entry
       tft.setCursor(0, i*line_spacing);
       tft.setTextColor(display_arr[i].color);
@@ -51,7 +51,7 @@ void manageDisplay(){
 
 //add a message to the screen
 void addText(char *tag, char *text, uint16_t color) {
-  for (int i=0; i<5; i++){
+  for (int i=0; i<max_display_items; i++){
     if(display_arr[i].tag == NULL || display_arr[i].tag == tag){ //if exists or is empty, update this entry
       DisplayItem new_item = {tag, text, color};  //create new struct
       display_arr[i] = new_item; //update value
@@ -64,7 +64,7 @@ void addText(char *tag, char *text, uint16_t color) {
 
 //clear a topic from the message array
 void clearText(char *tag){
-  for (int i=0; i<5; i++){
+  for (int i=0; i<max_display_items; i++){
     if(display_arr[i].tag == tag){ //if exists or is empty, delete this entry
       display_arr[i] = {NULL,NULL,BLACK}; //set to empty
       return;

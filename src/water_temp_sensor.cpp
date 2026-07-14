@@ -1,14 +1,17 @@
 #include <OneWire.h>
 #include <water_temp_sensor.h>
 
-//Temperature chip i/o
-OneWire ds(DS18S20_Pin);  // on digital pin 2
+//using the Dallas DS18S20 temperature chip, which uses the OneWire protocol
 
-void setupTempSensor(){
-  pinMode(DS18S20_Pin, INPUT);
+//Temperature chip i/o
+OneWire ds(6); //default pin, will be overridden in constructor
+
+WaterTempSensor::WaterTempSensor(int pin){
+  pinMode(pin, INPUT);
+  ds = OneWire(pin);
 }
 
-float getTemp(){
+float WaterTempSensor::readTemperature(){
   //returns the temperature from one DS18S20 in DEG Celsius
 
   byte data[12];

@@ -1,5 +1,5 @@
 //wifi connection data
-#define WLAN_SSID         "PlantTop"//wifi network ssid
+#define WLAN_SSID         "plantphone"//wifi network ssid
 #define WLAN_PASS         "growing23"//wifi password
 
 //buffers
