@@ -57,15 +57,17 @@ void manageDisplay(){
 
 //add a message to the screen
 void addText(char *tag, char *text, uint16_t color) {
+  //check if this tag already exists, if so, update it
   for (int i=0; i<max_display_items; i++){
     if(display_arr[i].tag == NULL || display_arr[i].tag == tag){ //if exists or is empty, update this entry
       DisplayItem new_item = {tag, text, color};  //create new struct
       display_arr[i] = new_item; //update value
+      Serial.print(tag);
+      Serial.print(" ");
+      Serial.println(text);
       return;
     }
   }
-
-
 }
 
 //clear a topic from the message array

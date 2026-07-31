@@ -20,19 +20,10 @@ float last_message_time = 0;
 
 
 //==============AEROPONICS VARS==============
-//const int FLOW_PIN = 5; //for solenoid control
 const int PUMP_CTL_PIN = 10; //to control inflow pumps
-
-float flow_on_time = 15; //seconds
-float flow_off_time = 300; //seconds should be 300
 
 float shutoff_pressure = 82; //psi, pressure at which to shut off pumps
 float pressure_hysteresis = 5; //psi, pressure below shutoff_pressure at which to turn pumps back on
-
-
-enum FlowState {ON, OFF};
-FlowState flow_state;
-float last_change_time = 0;
 
 bool pumps_on = false;
 
@@ -55,13 +46,11 @@ void setup()
     pinMode(PUMP_CTL_PIN, OUTPUT);
     
     if (! aht.begin()) {
-        Serial.println("Could not find AHT? Check wiring");
+        Serial.println("Could not find AHT. Check wiring.");
         while (1) delay(10);
     }
-    Serial.println("AHT10 or AHT20 found");
+    Serial.println("AHT10 or AHT20 found.");
 
-    flow_state = OFF;
-    last_change_time = millis()/1000.0;
     last_message_time = millis()/1000.0;
 
     //wifi setup
@@ -72,21 +61,6 @@ void setup()
 
 void manageSystem(){
   float current_time = millis()/1000.0;
-
-  // Serial.println("Pressure Switch: " + str(digitalRead(PRESSURE_SW_PIN)));
-
-  // //manage pressure pumps
-  // if(digitalRead(PRESSURE_SW_PIN)){ //if pressure low
-  //   pumps_on = true;
-  //   last_pressure_trigger = current_time;
-  //   Serial.println("Pumps Off");
-  // }
-  // else if(current_time - last_pressure_trigger >= pressure_buffer_time){ //if pressure high and buffer time past
-  //   pumps_on = false;
-  //   Serial.println("Pumps On");
-  // }
-  
-  // digitalWrite(PUMP_CTL_PIN, pumps_on);
 
   //manage inflow from reservoir to pressure tank
   if(pressure_sensor.readPressure() >= shutoff_pressure){ //if pressure high, turn off pumps
@@ -99,28 +73,6 @@ void manageSystem(){
     Serial.println("Pumps On");
     addText("PUMP_STATE", "PUMPS_ON", GREEN);
   }
-
-  // //manage flow from pressure tank to grow tower
-  // switch(flow_state){
-  //   case ON: //in open mode
-  //     digitalWrite(FLOW_PIN, HIGH); //open valve
-  //     if(current_time-last_change_time >= flow_on_time){ //switch states if needed
-  //       Serial.println("VALVE_CLOSED");
-  //       addText("VALVE_STATE", "VALVE_CLOSED", RED);
-  //       last_change_time = current_time;
-  //       flow_state = OFF;
-  //     }
-  //     break;
-  //   case OFF: //in closed mode
-  //     digitalWrite(FLOW_PIN, LOW); //close valve
-  //     if(current_time-last_change_time >= flow_off_time){ //switch states if needed
-  //       Serial.println("VALVE_OPEN");
-  //       addText("VALVE_STATE", "VALVE_OPEN", GREEN);
-  //       last_change_time = current_time;
-  //       flow_state = ON;
-  //     }
-  //     break;
-  // }
 
   //read temp
   double temperature = water_temp_sensor.readTemperature();
@@ -217,30 +169,6 @@ void publishHumidityData()
     publishToMQTT(TOPIC, message);
 }
 
-void publishValveData()
-{
-  //set up json and add timestamp
-  char buffer[10];
-  char message[256];
-  JsonDocument doc;
-
-  doc["time"] = millis()/60000.0;
-
-  //add device data
-  doc["user"] = DEVICE_USER;
-  doc["device_name"] = DEVICE_NAME;
-
-    //add sensor data
-    doc["type"] = "'valve_state'";
-    doc["value"] = 1;
-    if(flow_state == OFF) doc["value"] = 0;
-
-    //send the data
-    serializeJson(doc,message);
-    Serial.println(message);
-    publishToMQTT(TOPIC, message);
-}
-
 void loop() 
 {
     //update_wifi();
@@ -252,7 +180,6 @@ void loop()
       last_message_time = current_time;
       Serial.println("PUBLISHING");
       Serial.println("Time: " + String(current_time));
-      Serial.println("State: " + flow_state);
       //publishWaterTemperatureData();
       //publishTemperatureData();
       //publishHumidityData();

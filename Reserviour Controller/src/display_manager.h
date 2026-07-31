@@ -16,11 +16,11 @@ static const unsigned int max_display_items = 10;
 // External SPI TFT configuration.
 // Update these values to match your display wiring.
 #ifndef DISP_WIDTH
-#define DISP_WIDTH 240
+#define DISP_WIDTH 320
 #endif
 
 #ifndef DISP_HEIGHT
-#define DISP_HEIGHT 135
+#define DISP_HEIGHT 240
 #endif
 
 #ifndef DISP_ROTATION
