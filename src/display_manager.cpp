@@ -3,9 +3,10 @@
 #include <Adafruit_GFX.h>    // Core graphics library
 #include <Adafruit_ST7789.h> // Hardware-specific library for ST7789
 #include <Arduino.h>
+#include <SPI.h>
 
 //DISPLAY
-Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST); // Use dedicated hardware SPI pins
+Adafruit_ST7789 tft = Adafruit_ST7789(&SPI, DISP_CS, DISP_DC, DISP_RST); // Use dedicated hardware SPI pins
 
 //struct for a display item on the screen
 typedef struct display_item{
@@ -18,18 +19,23 @@ DisplayItem display_arr[max_display_items];
 
 //to be called on setup
 void setupDisplay(){
-    // turn on backlite
-    pinMode(TFT_BACKLITE, OUTPUT);
-    digitalWrite(TFT_BACKLITE, HIGH);
+    pinMode(DISP_CS, OUTPUT);
+    pinMode(DISP_DC, OUTPUT);
+    if (DISP_RST >= 0) {
+      pinMode(DISP_RST, OUTPUT);
+    }
 
-    // turn on the TFT / I2C power supply
-    pinMode(TFT_I2C_POWER, OUTPUT);
-    digitalWrite(TFT_I2C_POWER, HIGH);
-    delay(10);
+    if (DISP_BL >= 0) {
+      pinMode(DISP_BL, OUTPUT);
+      digitalWrite(DISP_BL, HIGH);
+    }
+
+    // External display path: explicitly map hardware SPI pins.
+    SPI.begin(DISP_SCK, DISP_MISO, DISP_MOSI, DISP_CS);
 
     // initialize TFT
-    tft.init(135, 240); // Init ST7789 240x135
-    tft.setRotation(3);
+    tft.init(DISP_HEIGHT, DISP_WIDTH);
+    tft.setRotation(DISP_ROTATION);
     tft.fillScreen(BLACK);
     tft.cp437(true);
 }

@@ -1,6 +1,6 @@
 #include <Adafruit_AHTX0.h>
 
-#include <OneWire.h>
+#include <OneWireNg.h>
 
 //#include <Time.h>
 #include <Arduino.h>
@@ -20,7 +20,7 @@ float last_message_time = 0;
 
 
 //==============AEROPONICS VARS==============
-const int FLOW_PIN = 5; //for solenoid control
+//const int FLOW_PIN = 5; //for solenoid control
 const int PUMP_CTL_PIN = 10; //to control inflow pumps
 
 float flow_on_time = 15; //seconds
@@ -36,9 +36,9 @@ float last_change_time = 0;
 
 bool pumps_on = false;
 
-CQRobotTDS tds(17, 5.0); //TDS sensor on pin 18, 5V reference
-PressureTransducer pressure_sensor(16); //pressure sensor on pin 19
-WaterTempSensor water_temp_sensor(6); //water temp sensor on pin 6
+CQRobotTDS tds(2, 5.0); //TDS sensor on pin 12, 5V reference
+PressureTransducer pressure_sensor(1); //pressure sensor on pin 8
+WaterTempSensor water_temp_sensor(3); //water temp sensor on pin 13
 
 //==============SENSOR PINS==============
 Adafruit_AHTX0 aht; //humidity and temp
@@ -51,7 +51,7 @@ void setup()
     setupDisplay();
 
     //aeroponics setup
-    pinMode(FLOW_PIN, OUTPUT);
+    //pinMode(FLOW_PIN, OUTPUT);
     pinMode(PUMP_CTL_PIN, OUTPUT);
     
     if (! aht.begin()) {
@@ -100,45 +100,48 @@ void manageSystem(){
     addText("PUMP_STATE", "PUMPS_ON", GREEN);
   }
 
-  //manage flow from pressure tank to grow tower
-  switch(flow_state){
-    case ON: //in open mode
-      digitalWrite(FLOW_PIN, HIGH); //open valve
-      if(current_time-last_change_time >= flow_on_time){ //switch states if needed
-        Serial.println("VALVE_CLOSED");
-        addText("VALVE_STATE", "VALVE_CLOSED", RED);
-        last_change_time = current_time;
-        flow_state = OFF;
-      }
-      break;
-    case OFF: //in closed mode
-      digitalWrite(FLOW_PIN, LOW); //close valve
-      if(current_time-last_change_time >= flow_off_time){ //switch states if needed
-        Serial.println("VALVE_OPEN");
-        addText("VALVE_STATE", "VALVE_OPEN", GREEN);
-        last_change_time = current_time;
-        flow_state = ON;
-      }
-      break;
-  }
+  // //manage flow from pressure tank to grow tower
+  // switch(flow_state){
+  //   case ON: //in open mode
+  //     digitalWrite(FLOW_PIN, HIGH); //open valve
+  //     if(current_time-last_change_time >= flow_on_time){ //switch states if needed
+  //       Serial.println("VALVE_CLOSED");
+  //       addText("VALVE_STATE", "VALVE_CLOSED", RED);
+  //       last_change_time = current_time;
+  //       flow_state = OFF;
+  //     }
+  //     break;
+  //   case OFF: //in closed mode
+  //     digitalWrite(FLOW_PIN, LOW); //close valve
+  //     if(current_time-last_change_time >= flow_off_time){ //switch states if needed
+  //       Serial.println("VALVE_OPEN");
+  //       addText("VALVE_STATE", "VALVE_OPEN", GREEN);
+  //       last_change_time = current_time;
+  //       flow_state = ON;
+  //     }
+  //     break;
+  // }
 
   //read temp
   double temperature = water_temp_sensor.readTemperature();
   char wtr_temp[32];
   dtostrf(temperature, 7, 2, wtr_temp);
   addText("WATER_TEMP", wtr_temp, BLUE);
+  Serial.println("Water Temp: " + String(temperature));
 
   //read TDS
   double TDS_val = tds.update(25); //25 degree placeholder
   char tds_str[32];
   dtostrf(TDS_val, 7, 2, tds_str);
   addText("TDS", tds_str, BLUE);
+  Serial.println("TDS: " + String(TDS_val));
 
   //read pressure
   double pressure = pressure_sensor.readPressure();
   char pressure_str[32];
   dtostrf(pressure, 7, 2, pressure_str);
   addText("PRESSURE", pressure_str, BLUE);
+  Serial.println("Pressure: " + String(pressure));
 
   //read humidity and air temperature
   sensors_event_t humidity, temp;
@@ -146,9 +149,11 @@ void manageSystem(){
   char humidity_str[32];
   dtostrf(humidity.relative_humidity, 7, 2, humidity_str);
   addText("HUMIDITY", humidity_str, BLUE);
+  Serial.println("Humidity: " + String(humidity.relative_humidity));
   char air_temp_str[32];
   dtostrf(temp.temperature, 7, 2, air_temp_str);
   addText("AIR_TEMP", air_temp_str, BLUE);
+  Serial.println("Air Temp: " + String(temp.temperature));
 
   manageDisplay();
 }
