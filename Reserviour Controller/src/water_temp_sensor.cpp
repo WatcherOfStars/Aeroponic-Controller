@@ -28,16 +28,23 @@ WaterTempSensor::WaterTempSensor(int pin){
 float WaterTempSensor::readTemperature(){
   // returns the temperature from one DS18x20 in DEG Celsius
   if (ow == nullptr || dsth == nullptr) {
+    Serial.println("Error: OneWire or DSTherm not initialized.");
     return -1000;
   }
 
   OneWireNg::ErrorCode ec = dsth->convertTempAll(DSTherm::MAX_CONV_TIME, false);
   if (ec != OneWireNg::EC_SUCCESS) {
+    Serial.print("Error: Failed to convert temperature.");
+    Serial.print(" Error code: ");
+    Serial.println(ec);
     return -1000;
   }
 
   ec = dsth->readScratchpadSingle(&scrpd);
   if (ec != OneWireNg::EC_SUCCESS) {
+    Serial.print("Error: Failed to read scratchpad.");
+    Serial.print(" Error code: ");
+    Serial.println(ec);
     return -1000;
   }
 

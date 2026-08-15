@@ -38,6 +38,7 @@ void setupDisplay(){
     tft.setRotation(DISP_ROTATION);
     tft.fillScreen(BLACK);
     tft.cp437(true);
+    tft.setTextSize(2);
 }
 
 //to be called whenever display needs updated

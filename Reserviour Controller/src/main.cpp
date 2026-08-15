@@ -65,12 +65,10 @@ void manageSystem(){
   //manage inflow from reservoir to pressure tank
   if(pressure_sensor.readPressure() >= shutoff_pressure){ //if pressure high, turn off pumps
     pumps_on = false;
-    Serial.println("Pumps Off");
     addText("PUMP_STATE", "PUMPS_OFF", RED);
   }
   else if(pressure_sensor.readPressure() <= shutoff_pressure-pressure_hysteresis){ //if pressure low and buffer time past, turn on pumps
     pumps_on = true;
-    Serial.println("Pumps On");
     addText("PUMP_STATE", "PUMPS_ON", GREEN);
   }
 
@@ -79,21 +77,18 @@ void manageSystem(){
   char wtr_temp[32];
   dtostrf(temperature, 7, 2, wtr_temp);
   addText("WATER_TEMP", wtr_temp, BLUE);
-  Serial.println("Water Temp: " + String(temperature));
 
   //read TDS
   double TDS_val = tds.update(25); //25 degree placeholder
   char tds_str[32];
   dtostrf(TDS_val, 7, 2, tds_str);
   addText("TDS", tds_str, BLUE);
-  Serial.println("TDS: " + String(TDS_val));
 
   //read pressure
   double pressure = pressure_sensor.readPressure();
   char pressure_str[32];
   dtostrf(pressure, 7, 2, pressure_str);
   addText("PRESSURE", pressure_str, BLUE);
-  Serial.println("Pressure: " + String(pressure));
 
   //read humidity and air temperature
   sensors_event_t humidity, temp;
@@ -101,11 +96,9 @@ void manageSystem(){
   char humidity_str[32];
   dtostrf(humidity.relative_humidity, 7, 2, humidity_str);
   addText("HUMIDITY", humidity_str, BLUE);
-  Serial.println("Humidity: " + String(humidity.relative_humidity));
   char air_temp_str[32];
   dtostrf(temp.temperature, 7, 2, air_temp_str);
   addText("AIR_TEMP", air_temp_str, BLUE);
-  Serial.println("Air Temp: " + String(temp.temperature));
 
   manageDisplay();
 }
@@ -135,7 +128,7 @@ void publishTemperatureData()
 
     //send the data
     serializeJson(doc,message);
-    Serial.println(message);
+    //Serial.println(message);
     publishToMQTT(TOPIC, message);
 }
 
@@ -188,7 +181,7 @@ void loop()
 
     manageSystem();
 
-    delay(200);
+    delay(2000);
 }
 
 
