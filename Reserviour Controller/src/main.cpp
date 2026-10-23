@@ -15,12 +15,12 @@
 #include <pressure_transducer.h>
 
 //==============MESSAGING VARS==============
-const int message_time = 5; //time in seconds between messages
+const int message_time = 1; //time in seconds between messages
 float last_message_time = 0;
 
 
 //==============AEROPONICS VARS==============
-const int PUMP_CTL_PIN = 10; //to control inflow pumps
+const int PUMP_CTL_PIN = 0; //to control inflow pumps
 
 float shutoff_pressure = 82; //psi, pressure at which to shut off pumps
 float pressure_hysteresis = 5; //psi, pressure below shutoff_pressure at which to turn pumps back on
@@ -54,7 +54,7 @@ void setup()
     last_message_time = millis()/1000.0;
 
     //wifi setup
-    //setup_wifi();
+    setup_wifi();
     
 
 }
@@ -66,9 +66,11 @@ void manageSystem(){
   if(pressure_sensor.readPressure() >= shutoff_pressure){ //if pressure high, turn off pumps
     pumps_on = false;
     addText("PUMP_STATE", "PUMPS_OFF", RED);
+    digitalWrite(PUMP_CTL_PIN, LOW);
   }
   else if(pressure_sensor.readPressure() <= shutoff_pressure-pressure_hysteresis){ //if pressure low and buffer time past, turn on pumps
     pumps_on = true;
+    digitalWrite(PUMP_CTL_PIN, HIGH);
     addText("PUMP_STATE", "PUMPS_ON", GREEN);
   }
 
@@ -79,7 +81,7 @@ void manageSystem(){
   addText("WATER_TEMP", wtr_temp, BLUE);
 
   //read TDS
-  double TDS_val = tds.update(25); //25 degree placeholder
+  double TDS_val = tds.update(temperature);
   char tds_str[32];
   dtostrf(TDS_val, 7, 2, tds_str);
   addText("TDS", tds_str, BLUE);
@@ -103,8 +105,66 @@ void manageSystem(){
   manageDisplay();
 }
 
-void publishTemperatureData()
-{
+// void publishTemperatureData()
+// {
+//   //set up json and add timestamp
+//   char buffer[10];
+//   char message[256];
+//   JsonDocument doc;
+
+//   doc["time"] = millis()/60000.0;
+
+//   //add device data
+//   doc["user"] = DEVICE_USER;
+//   doc["device_name"] = DEVICE_NAME;
+
+//     //get sensor vals
+//     sensors_event_t humidity, temp;
+
+//     //refesh humidity (rH) and temperature (celcius)
+//     aht.getEvent(&humidity, &temp);
+
+//     //add sensor data
+//     doc["type"] = "'temperature'";
+//     doc["value"] = temp.temperature;
+
+//     //send the data
+//     serializeJson(doc,message);
+//     //Serial.println(message);
+//     publishToMQTT(TOPIC, message);
+// }
+
+
+// void publishHumidityData()
+// {
+//     //set up json and add timestamp
+//     char buffer[10];
+//     char message[256];
+//     JsonDocument doc;
+
+//     doc["time"] = millis()/60000.0;
+
+//     //add device data
+//     doc["user"] = DEVICE_USER;
+//     doc["device_name"] = DEVICE_NAME;
+
+//     //get sensor vals
+//     sensors_event_t humidity, temp;
+
+//     //refesh humidity (rH) and temperature (celcius)
+//     aht.getEvent(&humidity, &temp);
+
+//     //add sensor data
+//     doc["type"] = "'humidity'";
+//     doc["value"] = humidity.relative_humidity;
+
+//     //send the data
+//     serializeJson(doc,message);
+//     Serial.println(message);
+//     publishToMQTT(TOPIC, message);
+// }
+
+void publishDataIndividual(String type, String value){
   //set up json and add timestamp
   char buffer[10];
   char message[256];
@@ -116,55 +176,47 @@ void publishTemperatureData()
   doc["user"] = DEVICE_USER;
   doc["device_name"] = DEVICE_NAME;
 
-    //get sensor vals
-    sensors_event_t humidity, temp;
+  //add sensor data
+  doc["type"] = type;
+  doc["value"] = value;
 
-    //refesh humidity (rH) and temperature (celcius)
-    aht.getEvent(&humidity, &temp);
-
-    //add sensor data
-    doc["type"] = "'temperature'";
-    doc["value"] = temp.temperature;
-
-    //send the data
-    serializeJson(doc,message);
-    //Serial.println(message);
-    publishToMQTT(TOPIC, message);
+  //send the data
+  serializeJson(doc,message);
+  //Serial.println(message);
+  publishToMQTT(TOPIC, message);
 }
 
+void publishData(){
+  JsonDocument doc;
+  doc["time"] = millis()/60000.0;
 
-void publishHumidityData()
-{
-    //set up json and add timestamp
-    char buffer[10];
-    char message[256];
-    JsonDocument doc;
+  //add device data
+  doc["user"] = DEVICE_USER;
+  doc["device_name"] = DEVICE_NAME;
 
-    doc["time"] = millis()/60000.0;
+  //get sensor vals
+  sensors_event_t humidity, temp;
+  aht.getEvent(&humidity, &temp);
 
-    //add device data
-    doc["user"] = DEVICE_USER;
-    doc["device_name"] = DEVICE_NAME;
+  //add sensor data
+  doc["water_temperature"] = water_temp_sensor.readTemperature();
+  doc["TDS"] = tds.update(water_temp_sensor.readTemperature());
+  doc["pressure"] = pressure_sensor.readPressure();
+  doc["humidity"] = humidity.relative_humidity;
+  doc["air_temperature"] = temp.temperature;
+  doc["pump_state"] = pumps_on;
 
-    //get sensor vals
-    sensors_event_t humidity, temp;
 
-    //refesh humidity (rH) and temperature (celcius)
-    aht.getEvent(&humidity, &temp);
-
-    //add sensor data
-    doc["type"] = "'humidity'";
-    doc["value"] = humidity.relative_humidity;
-
-    //send the data
-    serializeJson(doc,message);
-    Serial.println(message);
-    publishToMQTT(TOPIC, message);
+  //send the data
+  char message[256];
+  serializeJson(doc,message);
+  Serial.println(message);
+  publishToMQTT(TOPIC, message);
 }
 
 void loop() 
 {
-    //update_wifi();
+    update_wifi();
 
     float current_time = millis()/1000.0;
 
@@ -172,11 +224,15 @@ void loop()
     if(current_time-last_message_time >= message_time){
       last_message_time = current_time;
       Serial.println("PUBLISHING");
-      Serial.println("Time: " + String(current_time));
-      //publishWaterTemperatureData();
-      //publishTemperatureData();
-      //publishHumidityData();
-      //publishValveData();
+      // Serial.println("Time: " + String(current_time));
+      // publishDataIndividual("water_temperature", String(water_temp_sensor.readTemperature()));
+      // publishDataIndividual("TDS", String(tds.update(water_temp_sensor.readTemperature())));
+      // publishDataIndividual("pressure", String(pressure_sensor.readPressure()));
+      // sensors_event_t humidity, temp;
+      // aht.getEvent(&humidity, &temp);
+      // publishDataIndividual("humidity", String(humidity.relative_humidity));
+      // publishDataIndividual("air_temperature", String(temp.temperature));
+      publishData();
     }
 
     manageSystem();
