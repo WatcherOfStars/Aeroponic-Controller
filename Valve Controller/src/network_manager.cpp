@@ -31,8 +31,9 @@ void setup_wifi() {
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
 
-  client.setServer(HOST, 1883);
+  client.setServer(HOST, PORT);
   client.setCallback(callback);
+  //client.subscribe(TOPIC);
 
   addText("WIFI_STATE", "Connected!", GREEN);
 }
@@ -65,10 +66,10 @@ void reconnect() {
     Serial.print("Attempting MQTT connection...");
     addText("WIFI_STATE", "Connecting to MQTT...", ORANGE);
     // Attempt to connect
-    if (client.connect("ESP8266Client")) {
+    if (client.connect(CLIENT_ID)) {
       Serial.println("connected");
       // Subscribe
-      client.subscribe("esp32/output");
+      //client.subscribe(TOPIC);
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -79,9 +80,10 @@ void reconnect() {
     }
   }
   addText("WIFI_STATE", "Connected to MQTT server", GREEN);
+  Serial.println("Connected to MQTT server");
 }
 
-void publishToMQTT(char* topic, char* message){
+void publishToMQTT(const char* topic, const char* message){
   client.publish(topic,message);
 }
 

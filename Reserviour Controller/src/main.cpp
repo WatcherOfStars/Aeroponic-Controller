@@ -105,65 +105,6 @@ void manageSystem(){
   manageDisplay();
 }
 
-// void publishTemperatureData()
-// {
-//   //set up json and add timestamp
-//   char buffer[10];
-//   char message[256];
-//   JsonDocument doc;
-
-//   doc["time"] = millis()/60000.0;
-
-//   //add device data
-//   doc["user"] = DEVICE_USER;
-//   doc["device_name"] = DEVICE_NAME;
-
-//     //get sensor vals
-//     sensors_event_t humidity, temp;
-
-//     //refesh humidity (rH) and temperature (celcius)
-//     aht.getEvent(&humidity, &temp);
-
-//     //add sensor data
-//     doc["type"] = "'temperature'";
-//     doc["value"] = temp.temperature;
-
-//     //send the data
-//     serializeJson(doc,message);
-//     //Serial.println(message);
-//     publishToMQTT(TOPIC, message);
-// }
-
-
-// void publishHumidityData()
-// {
-//     //set up json and add timestamp
-//     char buffer[10];
-//     char message[256];
-//     JsonDocument doc;
-
-//     doc["time"] = millis()/60000.0;
-
-//     //add device data
-//     doc["user"] = DEVICE_USER;
-//     doc["device_name"] = DEVICE_NAME;
-
-//     //get sensor vals
-//     sensors_event_t humidity, temp;
-
-//     //refesh humidity (rH) and temperature (celcius)
-//     aht.getEvent(&humidity, &temp);
-
-//     //add sensor data
-//     doc["type"] = "'humidity'";
-//     doc["value"] = humidity.relative_humidity;
-
-//     //send the data
-//     serializeJson(doc,message);
-//     Serial.println(message);
-//     publishToMQTT(TOPIC, message);
-// }
-
 void publishDataIndividual(String type, String value){
   //set up json and add timestamp
   char buffer[10];
@@ -224,14 +165,6 @@ void loop()
     if(current_time-last_message_time >= message_time){
       last_message_time = current_time;
       Serial.println("PUBLISHING");
-      // Serial.println("Time: " + String(current_time));
-      // publishDataIndividual("water_temperature", String(water_temp_sensor.readTemperature()));
-      // publishDataIndividual("TDS", String(tds.update(water_temp_sensor.readTemperature())));
-      // publishDataIndividual("pressure", String(pressure_sensor.readPressure()));
-      // sensors_event_t humidity, temp;
-      // aht.getEvent(&humidity, &temp);
-      // publishDataIndividual("humidity", String(humidity.relative_humidity));
-      // publishDataIndividual("air_temperature", String(temp.temperature));
       publishData();
     }
 
